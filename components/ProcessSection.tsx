@@ -1,8 +1,16 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import ProcessCard from './ProcessCard';
 import styles from './ProcessCard.module.css';
 
 const ProcessSection: React.FC = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Fixed configuration for 3 cards per view (desktop)
+  const cardsPerView = 3;
+  const totalPages = Math.ceil(6 / cardsPerView);
+
   const processData = [
     {
       title: "Engagement",
@@ -66,6 +74,23 @@ const ProcessSection: React.FC = () => {
     }
   ];
 
+  const goToPrevious = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? totalPages - 1 : prevIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === totalPages - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const getVisibleCards = () => {
+    const startIndex = currentIndex * cardsPerView;
+    return processData.slice(startIndex, startIndex + cardsPerView);
+  };
+
   return (
     <div className={styles['process-section']}>
       <div className={styles['process-container']}>
@@ -74,14 +99,65 @@ const ProcessSection: React.FC = () => {
           Our process guides you from assessment to completion with precision, ensuring a seamless transaction and minimal business disruption.
         </p>
         
-        <div className={styles['cards-grid']}>
-          {processData.map((process, index) => (
-            <ProcessCard
+        <div className={styles['carousel-container']}>
+          <button 
+            className={styles['nav-button']} 
+            onClick={goToPrevious}
+            aria-label="Previous cards"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          
+          <div className={styles['cards-carousel']}>
+            <div 
+              className={styles['cards-slider']}
+              style={{ 
+                transform: `translateX(-${currentIndex * (100 / totalPages)}%)`,
+                width: `${totalPages * 100}%`
+              }}
+            >
+              {Array.from({ length: totalPages }, (_, pageIndex) => (
+                <div 
+                  key={pageIndex} 
+                  className={styles['cards-page']}
+                  style={{ width: `${100 / totalPages}%` }}
+                >
+                  {processData
+                    .slice(pageIndex * cardsPerView, (pageIndex + 1) * cardsPerView)
+                    .map((process, cardIndex) => (
+                      <ProcessCard
+                        key={pageIndex * cardsPerView + cardIndex}
+                        title={process.title}
+                        description={process.description}
+                        bulletPoints={process.bulletPoints}
+                        iconPath={process.iconPath}
+                      />
+                    ))}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <button 
+            className={styles['nav-button']} 
+            onClick={goToNext}
+            aria-label="Next cards"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div className={styles['carousel-indicators']}>
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
               key={index}
-              title={process.title}
-              description={process.description}
-              bulletPoints={process.bulletPoints}
-              iconPath={process.iconPath}
+              className={`${styles['indicator']} ${currentIndex === index ? styles['active'] : ''}`}
+              onClick={() => setCurrentIndex(index)}
+              aria-label={`Go to page ${index + 1}`}
             />
           ))}
         </div>
