@@ -71,7 +71,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
   padding: 0 10px;
-  min-height: 500px;
+  min-height: 400px;
   flex-shrink: 0;
 }
 
@@ -171,7 +171,7 @@
   box-shadow: none;
   position: relative;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 520px;
+  height: 420px;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -250,7 +250,8 @@
   font-size: 0.9rem;
   color: #D0D0D0;
   line-height: 1.3;
-  margin-bottom: 8px;
+  margin-bottom: -30px !important;
+  padding-bottom: 0px !important;
   text-align: left;
   flex-grow: 1;
 }
@@ -258,34 +259,47 @@
 .card-bullets {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin-top: -30px !important;
+  margin-bottom: 0px !important;
+  padding-top: 0px !important;
 }
-
 /* Engagement card specific styling */
 .engagement-description {
-  margin-bottom: 8px !important;
+  margin-bottom: -30px !important;
+  padding-bottom: 0px !important;
+  line-height: 1.3 !important;
 }
 
 .engagement-bullets {
-  margin: 0 !important;
+  margin-top: -30px !important;
+  margin-bottom: 0px !important;
+  padding-top: 0px !important;
 }
 
 /* Outreach card specific styling */
 .outreach-description {
-  margin-bottom: 8px !important;
+  margin-bottom: -30px !important;
+  padding-bottom: 0px !important;
+  line-height: 1.3 !important;
 }
 
 .outreach-bullets {
-  margin: 0 !important;
+  margin-top: -30px !important;
+  margin-bottom: 0px !important;
+  padding-top: 0px !important;
 }
 
 /* Completion card specific styling */
 .completion-description {
-  margin-bottom: 2px !important;
+  margin-bottom: -30px !important;
+  padding-bottom: 0px !important;
+  line-height: 1.3 !important;
 }
 
 .completion-bullets {
-  margin: 0 !important;
+  margin-top: -30px !important;
+  margin-bottom: 0px !important;
+  padding-top: 0px !important;
 }
 
 /* Completion card sizing and padding to match Diligence */
@@ -306,6 +320,21 @@
   position: relative;
   text-align: left;
 }
+
+.bullet-point:first-child {
+  margin-top: 0px !important;
+  padding-top: 0px !important;
+}
+
+/* Ensure spacing reduction works with maximum specificity */
+.process-card p[class*="card-description"] {
+  margin-bottom: -30px !important;
+}
+
+.process-card ul[class*="card-bullets"] {
+  margin-top: -30px !important;
+}
+
 
 .bullet-point::before {
   content: '•';
@@ -346,7 +375,7 @@
   }
   
   .process-card {
-    height: 480px;
+    height: 380px;
     padding: 26px 22px;
   }
   
@@ -384,7 +413,7 @@
   }
   
   .process-card {
-    height: 480px;
+    height: 380px;
     padding: 28px 24px;
   }
   
@@ -405,7 +434,7 @@
   
   .process-card {
     padding: 28px 24px;
-    height: 500px;
+    height: 400px;
   }
   
   .section-title {

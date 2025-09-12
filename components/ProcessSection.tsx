@@ -94,11 +94,6 @@ const ProcessSection: React.FC = () => {
   return (
     <div className={styles['process-section']}>
       <div className={styles['process-container']}>
-        <h2 className={styles['section-title']}>Our Transaction Process</h2>
-        <p className={styles['section-description']}>
-          Our process guides you from assessment to completion with precision, ensuring a seamless transaction and minimal business disruption.
-        </p>
-        
         <div className={styles['carousel-container']}>
           <button 
             className={styles['nav-button']} 
