@@ -18,6 +18,11 @@ const ProcessSection: React.FC = () => {
   const [lastTouchTime, setLastTouchTime] = useState(0);
   const [gestureStart, setGestureStart] = useState<{ x: number; y: number; time: number } | null>(null);
   
+  // Navigation control states
+  const [lastNavigationTime, setLastNavigationTime] = useState(0);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [navigationCooldown, setNavigationCooldown] = useState(0);
+  
   // Dynamic configuration based on screen size
   const cardsPerView = isMobile ? 1 : 3;
   const totalPages = isMobile ? 6 : Math.ceil(6 / cardsPerView);
@@ -97,20 +102,62 @@ const ProcessSection: React.FC = () => {
     }
   ];
 
+  // Navigation control constants
+  const NAVIGATION_COOLDOWN_MS = 800; // Minimum time between navigations
+  const MIN_SWIPE_DISTANCE = 50; // Minimum distance for swipe
+  const MAX_SWIPE_TIME = 600; // Maximum time for swipe gesture
+  const MIN_SWIPE_VELOCITY = 0.3; // Minimum velocity for swipe (px/ms)
+
+  // Check if navigation is allowed (debouncing)
+  const canNavigate = (): boolean => {
+    const now = Date.now();
+    const timeSinceLastNav = now - lastNavigationTime;
+    
+    if (isNavigating || timeSinceLastNav < NAVIGATION_COOLDOWN_MS) {
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Safe navigation with debouncing
+  const safeNavigate = (direction: 'prev' | 'next' | 'card', index?: number) => {
+    if (!canNavigate()) {
+      console.log('Navigation blocked - cooldown active');
+      return;
+    }
+
+    setIsNavigating(true);
+    setLastNavigationTime(Date.now());
+    
+    if (direction === 'prev') {
+      setCurrentIndex((prevIndex) => 
+        prevIndex === 0 ? totalPages - 1 : prevIndex - 1
+      );
+    } else if (direction === 'next') {
+      setCurrentIndex((prevIndex) => 
+        prevIndex === totalPages - 1 ? 0 : prevIndex + 1
+      );
+    } else if (direction === 'card' && index !== undefined) {
+      setCurrentIndex(index);
+    }
+
+    // Reset navigation state after animation
+    setTimeout(() => {
+      setIsNavigating(false);
+    }, 300);
+  };
+
   const goToPrevious = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? totalPages - 1 : prevIndex - 1
-    );
+    safeNavigate('prev');
   };
 
   const goToNext = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === totalPages - 1 ? 0 : prevIndex + 1
-    );
+    safeNavigate('next');
   };
 
   const goToCard = (index: number) => {
-    setCurrentIndex(index);
+    safeNavigate('card', index);
   };
 
   // Touch/Swipe navigation functions for all devices
@@ -151,18 +198,30 @@ const ProcessSection: React.FC = () => {
   };
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd || !gestureStart) return;
+    if (!touchStart || !touchEnd || !gestureStart) {
+      setIsHorizontalSwipe(false);
+      setGestureStart(null);
+      return;
+    }
     
     const now = Date.now();
     const deltaX = gestureStart.x - touchEnd.x;
     const deltaY = Math.abs(gestureStart.y - touchEnd.y);
     const deltaTime = now - gestureStart.time;
+    const velocity = Math.abs(deltaX) / deltaTime;
     
-    // Only navigate if:
-    // 1. Horizontal movement is significantly greater than vertical
-    // 2. Movement is at least 30px
-    // 3. Gesture is completed within 500ms (prevents slow drags)
-    if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 30 && deltaTime < 500) {
+    // Enhanced validation for swipe gestures:
+    // 1. Horizontal movement must be significantly greater than vertical (2:1 ratio)
+    // 2. Movement must be at least MIN_SWIPE_DISTANCE pixels
+    // 3. Gesture must be completed within MAX_SWIPE_TIME ms
+    // 4. Must have minimum velocity to prevent accidental slow drags
+    // 5. Must pass navigation cooldown check
+    const isHorizontalGesture = Math.abs(deltaX) > deltaY * 2;
+    const hasMinimumDistance = Math.abs(deltaX) > MIN_SWIPE_DISTANCE;
+    const isQuickGesture = deltaTime < MAX_SWIPE_TIME;
+    const hasMinimumVelocity = velocity > MIN_SWIPE_VELOCITY;
+    
+    if (isHorizontalGesture && hasMinimumDistance && isQuickGesture && hasMinimumVelocity && canNavigate()) {
       if (deltaX > 0) {
         goToNext();
       } else {
@@ -222,12 +281,20 @@ const ProcessSection: React.FC = () => {
     const deltaX = gestureStart.x - mouseEnd.x;
     const deltaY = Math.abs(gestureStart.y - mouseEnd.y);
     const deltaTime = now - gestureStart.time;
+    const velocity = Math.abs(deltaX) / deltaTime;
     
-    // Only navigate if:
-    // 1. Horizontal movement is significantly greater than vertical
-    // 2. Movement is at least 30px
-    // 3. Gesture is completed within 500ms (prevents slow drags)
-    if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 30 && deltaTime < 500) {
+    // Enhanced validation for mouse drag gestures:
+    // 1. Horizontal movement must be significantly greater than vertical (2:1 ratio)
+    // 2. Movement must be at least MIN_SWIPE_DISTANCE pixels
+    // 3. Gesture must be completed within MAX_SWIPE_TIME ms
+    // 4. Must have minimum velocity to prevent accidental slow drags
+    // 5. Must pass navigation cooldown check
+    const isHorizontalGesture = Math.abs(deltaX) > deltaY * 2;
+    const hasMinimumDistance = Math.abs(deltaX) > MIN_SWIPE_DISTANCE;
+    const isQuickGesture = deltaTime < MAX_SWIPE_TIME;
+    const hasMinimumVelocity = velocity > MIN_SWIPE_VELOCITY;
+    
+    if (isHorizontalGesture && hasMinimumDistance && isQuickGesture && hasMinimumVelocity && canNavigate()) {
       if (deltaX > 0) {
         goToNext();
       } else {
@@ -240,14 +307,25 @@ const ProcessSection: React.FC = () => {
     setGestureStart(null);
   };
 
-  // Enhanced trackpad gesture detection
+  // Enhanced trackpad gesture detection with debouncing
   const handleWheel = (e: React.WheelEvent) => {
+    const now = Date.now();
+    
+    // Debounce wheel events to prevent rapid navigation
+    if (now - lastWheelTime < 100) {
+      return;
+    }
+    
     // Debug: Log wheel events to understand trackpad behavior
     console.log('Wheel event:', { deltaX: e.deltaX, deltaY: e.deltaY });
     
-    // Detect horizontal trackpad gestures
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 10) {
+    // Detect horizontal trackpad gestures with stricter validation
+    const isHorizontalGesture = Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5;
+    const hasMinimumDelta = Math.abs(e.deltaX) > 15;
+    
+    if (isHorizontalGesture && hasMinimumDelta && canNavigate()) {
       e.preventDefault();
+      setLastWheelTime(now);
       console.log('Horizontal trackpad gesture detected');
       
       if (e.deltaX > 0) {
@@ -289,16 +367,32 @@ const ProcessSection: React.FC = () => {
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (!gestureStart) return;
+    if (!gestureStart) {
+      setIsHorizontalSwipe(false);
+      setGestureStart(null);
+      return;
+    }
     
     const now = Date.now();
     const deltaX = gestureStart.x - e.clientX;
     const deltaY = Math.abs(gestureStart.y - e.clientY);
     const deltaTime = now - gestureStart.time;
+    const velocity = Math.abs(deltaX) / deltaTime;
     
-    console.log('Pointer up:', { deltaX, deltaY, deltaTime, isHorizontalSwipe });
+    console.log('Pointer up:', { deltaX, deltaY, deltaTime, velocity, isHorizontalSwipe });
     
-    if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 30 && deltaTime < 500) {
+    // Enhanced validation for pointer gestures:
+    // 1. Horizontal movement must be significantly greater than vertical (2:1 ratio)
+    // 2. Movement must be at least MIN_SWIPE_DISTANCE pixels
+    // 3. Gesture must be completed within MAX_SWIPE_TIME ms
+    // 4. Must have minimum velocity to prevent accidental slow drags
+    // 5. Must pass navigation cooldown check
+    const isHorizontalGesture = Math.abs(deltaX) > deltaY * 2;
+    const hasMinimumDistance = Math.abs(deltaX) > MIN_SWIPE_DISTANCE;
+    const isQuickGesture = deltaTime < MAX_SWIPE_TIME;
+    const hasMinimumVelocity = velocity > MIN_SWIPE_VELOCITY;
+    
+    if (isHorizontalGesture && hasMinimumDistance && isQuickGesture && hasMinimumVelocity && canNavigate()) {
       console.log('Pointer gesture navigation triggered');
       if (deltaX > 0) {
         goToNext();
@@ -311,19 +405,22 @@ const ProcessSection: React.FC = () => {
     setGestureStart(null);
   };
 
-  // Keyboard navigation
+  // Keyboard navigation with debouncing
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
+      // Only handle arrow keys and prevent rapid key presses
+      if (e.key === 'ArrowLeft' && canNavigate()) {
+        e.preventDefault();
         goToPrevious();
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === 'ArrowRight' && canNavigate()) {
+        e.preventDefault();
         goToNext();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [lastNavigationTime, isNavigating]);
 
   const getVisibleCards = () => {
     const startIndex = currentIndex * cardsPerView;
