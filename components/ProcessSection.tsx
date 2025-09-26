@@ -24,8 +24,8 @@ const ProcessSection: React.FC = () => {
   const [navigationCooldown, setNavigationCooldown] = useState(0);
   
   // Dynamic configuration based on screen size
-  const cardsPerView = isMobile ? 1 : 3;
-  const totalPages = isMobile ? 6 : Math.ceil(6 / cardsPerView);
+  const cardsPerView = isMobile ? 1 : 2.5;
+  const totalPages = isMobile ? 6 : 3;
   
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -102,11 +102,11 @@ const ProcessSection: React.FC = () => {
     }
   ];
 
-  // Navigation control constants
-  const NAVIGATION_COOLDOWN_MS = 800; // Minimum time between navigations
-  const MIN_SWIPE_DISTANCE = 50; // Minimum distance for swipe
-  const MAX_SWIPE_TIME = 600; // Maximum time for swipe gesture
-  const MIN_SWIPE_VELOCITY = 0.3; // Minimum velocity for swipe (px/ms)
+  // Navigation control constants - enhanced to prevent accidental navigation
+  const NAVIGATION_COOLDOWN_MS = 800; // Minimum time between navigations (increased to prevent rapid navigation)
+  const MIN_SWIPE_DISTANCE = 50; // Minimum distance for swipe (increased to prevent accidental navigation)
+  const MAX_SWIPE_TIME = 500; // Maximum time for swipe gesture (reduced to prevent slow drags)
+  const MIN_SWIPE_VELOCITY = 0.5; // Minimum velocity for swipe (increased to prevent accidental slow movements)
 
   // Check if navigation is allowed (debouncing)
   const canNavigate = (): boolean => {
@@ -205,27 +205,52 @@ const ProcessSection: React.FC = () => {
     }
     
     const now = Date.now();
-    const deltaX = gestureStart.x - touchEnd.x;
-    const deltaY = Math.abs(gestureStart.y - touchEnd.y);
+    // Calculate movement from start to end position
+    const deltaX = touchEnd.x - gestureStart.x; // Positive = right swipe, Negative = left swipe
+    const deltaY = Math.abs(touchEnd.y - gestureStart.y);
     const deltaTime = now - gestureStart.time;
     const velocity = Math.abs(deltaX) / deltaTime;
     
+    console.log('Touch End Debug:', {
+      startX: gestureStart.x,
+      endX: touchEnd.x,
+      deltaX: deltaX,
+      deltaY: deltaY,
+      deltaTime: deltaTime,
+      velocity: velocity
+    });
+    
     // Enhanced validation for swipe gestures:
-    // 1. Horizontal movement must be significantly greater than vertical (2:1 ratio)
+    // 1. Horizontal movement must be significantly greater than vertical (3:1 ratio for stricter detection)
     // 2. Movement must be at least MIN_SWIPE_DISTANCE pixels
     // 3. Gesture must be completed within MAX_SWIPE_TIME ms
     // 4. Must have minimum velocity to prevent accidental slow drags
     // 5. Must pass navigation cooldown check
-    const isHorizontalGesture = Math.abs(deltaX) > deltaY * 2;
+    const isHorizontalGesture = Math.abs(deltaX) > deltaY * 3;
     const hasMinimumDistance = Math.abs(deltaX) > MIN_SWIPE_DISTANCE;
     const isQuickGesture = deltaTime < MAX_SWIPE_TIME;
     const hasMinimumVelocity = velocity > MIN_SWIPE_VELOCITY;
     
     if (isHorizontalGesture && hasMinimumDistance && isQuickGesture && hasMinimumVelocity && canNavigate()) {
-      if (deltaX > 0) {
-        goToNext();
+      // Mobile-specific direction mapping
+      if (isMobile) {
+        // On mobile: Swipe right goes to previous, Swipe left goes to next
+        if (deltaX > 0) {
+          console.log('Mobile Swipe RIGHT detected - going to PREVIOUS');
+          goToPrevious();
+        } else {
+          console.log('Mobile Swipe LEFT detected - going to NEXT');
+          goToNext();
+        }
       } else {
-        goToPrevious();
+        // On desktop: Swipe right goes to next, Swipe left goes to previous
+        if (deltaX > 0) {
+          console.log('Desktop Swipe RIGHT detected - going to NEXT');
+          goToNext();
+        } else {
+          console.log('Desktop Swipe LEFT detected - going to PREVIOUS');
+          goToPrevious();
+        }
       }
     }
     
@@ -278,27 +303,52 @@ const ProcessSection: React.FC = () => {
     }
     
     const now = Date.now();
-    const deltaX = gestureStart.x - mouseEnd.x;
-    const deltaY = Math.abs(gestureStart.y - mouseEnd.y);
+    // Calculate movement from start to end position
+    const deltaX = mouseEnd.x - gestureStart.x; // Positive = right drag, Negative = left drag
+    const deltaY = Math.abs(mouseEnd.y - gestureStart.y);
     const deltaTime = now - gestureStart.time;
     const velocity = Math.abs(deltaX) / deltaTime;
     
+    console.log('Mouse Up Debug:', {
+      startX: gestureStart.x,
+      endX: mouseEnd.x,
+      deltaX: deltaX,
+      deltaY: deltaY,
+      deltaTime: deltaTime,
+      velocity: velocity
+    });
+    
     // Enhanced validation for mouse drag gestures:
-    // 1. Horizontal movement must be significantly greater than vertical (2:1 ratio)
+    // 1. Horizontal movement must be significantly greater than vertical (3:1 ratio for stricter detection)
     // 2. Movement must be at least MIN_SWIPE_DISTANCE pixels
     // 3. Gesture must be completed within MAX_SWIPE_TIME ms
     // 4. Must have minimum velocity to prevent accidental slow drags
     // 5. Must pass navigation cooldown check
-    const isHorizontalGesture = Math.abs(deltaX) > deltaY * 2;
+    const isHorizontalGesture = Math.abs(deltaX) > deltaY * 3;
     const hasMinimumDistance = Math.abs(deltaX) > MIN_SWIPE_DISTANCE;
     const isQuickGesture = deltaTime < MAX_SWIPE_TIME;
     const hasMinimumVelocity = velocity > MIN_SWIPE_VELOCITY;
     
     if (isHorizontalGesture && hasMinimumDistance && isQuickGesture && hasMinimumVelocity && canNavigate()) {
-      if (deltaX > 0) {
-        goToNext();
+      // Mobile-specific direction mapping for mouse events
+      if (isMobile) {
+        // On mobile: Drag right goes to previous, Drag left goes to next
+        if (deltaX > 0) {
+          console.log('Mobile Drag RIGHT detected - going to PREVIOUS');
+          goToPrevious();
+        } else {
+          console.log('Mobile Drag LEFT detected - going to NEXT');
+          goToNext();
+        }
       } else {
-        goToPrevious();
+        // On desktop: Drag right goes to next, Drag left goes to previous (consistent with trackpad)
+        if (deltaX > 0) {
+          console.log('Desktop Drag RIGHT detected - going to NEXT');
+          goToNext();
+        } else {
+          console.log('Desktop Drag LEFT detected - going to PREVIOUS');
+          goToPrevious();
+        }
       }
     }
     
@@ -320,22 +370,23 @@ const ProcessSection: React.FC = () => {
     console.log('Wheel event:', { deltaX: e.deltaX, deltaY: e.deltaY });
     
     // Detect horizontal trackpad gestures with stricter validation
-    const isHorizontalGesture = Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5;
-    const hasMinimumDelta = Math.abs(e.deltaX) > 15;
+    const isHorizontalGesture = Math.abs(e.deltaX) > Math.abs(e.deltaY) * 2;
+    const hasMinimumDelta = Math.abs(e.deltaX) > 25;
+    const hasMinimumVelocity = Math.abs(e.deltaX) > 20; // Additional velocity check for trackpad
     
-    if (isHorizontalGesture && hasMinimumDelta && canNavigate()) {
+    if (isHorizontalGesture && hasMinimumDelta && hasMinimumVelocity && canNavigate()) {
       e.preventDefault();
       setLastWheelTime(now);
       console.log('Horizontal trackpad gesture detected');
       
       if (e.deltaX > 0) {
-        // Swipe right - go to previous
-        console.log('Going to previous');
-        goToPrevious();
-      } else {
-        // Swipe left - go to next
-        console.log('Going to next');
+        // Swipe right - go to next (fixed direction)
+        console.log('Trackpad RIGHT detected - going to NEXT');
         goToNext();
+      } else {
+        // Swipe left - go to previous (fixed direction)
+        console.log('Trackpad LEFT detected - going to PREVIOUS');
+        goToPrevious();
       }
     }
   };
@@ -374,12 +425,21 @@ const ProcessSection: React.FC = () => {
     }
     
     const now = Date.now();
-    const deltaX = gestureStart.x - e.clientX;
-    const deltaY = Math.abs(gestureStart.y - e.clientY);
+    // Calculate movement from start to end position
+    const deltaX = e.clientX - gestureStart.x; // Positive = right pointer, Negative = left pointer
+    const deltaY = Math.abs(e.clientY - gestureStart.y);
     const deltaTime = now - gestureStart.time;
     const velocity = Math.abs(deltaX) / deltaTime;
     
-    console.log('Pointer up:', { deltaX, deltaY, deltaTime, velocity, isHorizontalSwipe });
+    console.log('Pointer Up Debug:', {
+      startX: gestureStart.x,
+      endX: e.clientX,
+      deltaX: deltaX,
+      deltaY: deltaY,
+      deltaTime: deltaTime,
+      velocity: velocity,
+      isHorizontalSwipe: isHorizontalSwipe
+    });
     
     // Enhanced validation for pointer gestures:
     // 1. Horizontal movement must be significantly greater than vertical (2:1 ratio)
@@ -394,10 +454,25 @@ const ProcessSection: React.FC = () => {
     
     if (isHorizontalGesture && hasMinimumDistance && isQuickGesture && hasMinimumVelocity && canNavigate()) {
       console.log('Pointer gesture navigation triggered');
-      if (deltaX > 0) {
-        goToNext();
+      // Mobile-specific direction mapping for pointer events
+      if (isMobile) {
+        // On mobile: Pointer right goes to previous, Pointer left goes to next
+        if (deltaX > 0) {
+          console.log('Mobile Pointer RIGHT detected - going to PREVIOUS');
+          goToPrevious();
+        } else {
+          console.log('Mobile Pointer LEFT detected - going to NEXT');
+          goToNext();
+        }
       } else {
-        goToPrevious();
+        // On desktop: Pointer right goes to next, Pointer left goes to previous
+        if (deltaX > 0) {
+          console.log('Desktop Pointer RIGHT detected - going to NEXT');
+          goToNext();
+        } else {
+          console.log('Desktop Pointer LEFT detected - going to PREVIOUS');
+          goToPrevious();
+        }
       }
     }
     
@@ -473,7 +548,7 @@ const ProcessSection: React.FC = () => {
                 </div>
               ))
             ) : (
-              // Desktop: Show 3 cards per page
+              // Desktop: Show 2.5 cards per page
               Array.from({ length: totalPages }, (_, pageIndex) => (
                 <div 
                   key={pageIndex} 
@@ -481,10 +556,10 @@ const ProcessSection: React.FC = () => {
                   style={{ width: `${100 / totalPages}%` }}
                 >
                   {processData
-                    .slice(pageIndex * cardsPerView, (pageIndex + 1) * cardsPerView)
+                    .slice(pageIndex * 2, (pageIndex + 1) * 2 + (pageIndex < totalPages - 1 ? 1 : 0))
                     .map((process, cardIndex) => (
             <ProcessCard
-                        key={pageIndex * cardsPerView + cardIndex}
+                        key={pageIndex * 2 + cardIndex}
               title={process.title}
               description={process.description}
               bulletPoints={process.bulletPoints}
@@ -503,14 +578,8 @@ const ProcessSection: React.FC = () => {
             onClick={goToPrevious}
             aria-label="Previous cards"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <defs>
-                <linearGradient id="arrowGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#1E3A8A"/>
-                  <stop offset="100%" stopColor="#0891B2"/>
-                </linearGradient>
-              </defs>
-              <path d="M12.5 15L7.5 10L12.5 5" stroke="url(#arrowGradient)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+              <path d="M27 33L17 22L27 11" fill="#3B82F6"/>
             </svg>
           </button>
           
@@ -530,14 +599,8 @@ const ProcessSection: React.FC = () => {
             onClick={goToNext}
             aria-label="Next cards"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <defs>
-                <linearGradient id="arrowGradientRight" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#1E3A8A"/>
-                  <stop offset="100%" stopColor="#0891B2"/>
-                </linearGradient>
-              </defs>
-              <path d="M7.5 15L12.5 10L7.5 5" stroke="url(#arrowGradientRight)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+              <path d="M17 11L27 22L17 33" fill="#3B82F6"/>
             </svg>
           </button>
         </div>

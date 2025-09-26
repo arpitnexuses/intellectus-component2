@@ -28,27 +28,37 @@ const ProcessCard: React.FC<ProcessCardProps> = ({ title, description, bulletPoi
 
   return (
     <div className={`${styles['process-card']} ${title.toLowerCase() === 'completion' ? styles['completion-card'] : ''}`}>
-      {/* Icon */}
-      <div className={styles['card-icon']}>
-        <img 
-          src={iconPath} 
-          alt={`${title} icon`}
-          className={styles['card-icon-image']}
-        />
+      <div className={styles['card-layout']}>
+        {/* Left side - Logo */}
+        <div className={styles['card-left-section']}>
+          <div className={styles['card-icon']}>
+            <img 
+              src={iconPath} 
+              alt={`${title} icon`}
+              className={styles['card-icon-image']}
+            />
+          </div>
+        </div>
+        
+        {/* Middle - Divider */}
+        <div className={styles['card-divider']}></div>
+        
+        {/* Right side - Content */}
+        <div className={styles['card-right-section']}>
+          {/* Title */}
+          <h3 className={`${styles['card-title']} ${title.toLowerCase() === 'completion' ? styles['completion-title'] : ''}`}>{title}</h3>
+          
+          {/* Description */}
+          <p className={getDescriptionClass()}>{description}</p>
+          
+          {/* Bullet Points */}
+          <ul className={getBulletsClass()}>
+            {bulletPoints.map((point, index) => (
+              <li key={index} className={styles['bullet-point']}>{point}</li>
+            ))}
+          </ul>
+        </div>
       </div>
-      
-      {/* Title */}
-      <h3 className={`${styles['card-title']} ${title.toLowerCase() === 'completion' ? styles['completion-title'] : ''}`}>{title}</h3>
-      
-      {/* Description */}
-      <p className={getDescriptionClass()}>{description}</p>
-      
-      {/* Bullet Points */}
-      <ul className={getBulletsClass()}>
-        {bulletPoints.map((point, index) => (
-          <li key={index} className={styles['bullet-point']}>{point}</li>
-        ))}
-      </ul>
     </div>
   );
 };
