@@ -113,11 +113,17 @@
     opacity: 0.9;
     overflow: hidden;
     position: relative;
+    border-radius: 16px 0 0 16px; /* Flat right border since it continues to next pagination */
   }
   
   /* Hide overflowing content in partial card */
   .cards-page:not(:last-child) .process-card:nth-child(3) .card-right-section {
     overflow: hidden;
+  }
+  
+  /* Adjust left section border radius for partial card */
+  .cards-page:not(:last-child) .process-card:nth-child(3) .card-left-section {
+    border-radius: 16px 0 0 16px; /* Match the partial card's flat right border */
   }
   
   .cards-page:not(:last-child) .process-card:nth-child(3) .card-description {
@@ -174,6 +180,7 @@
     grid-column: span 1;
     opacity: 0.9;
     overflow: hidden;
+    border-radius: 16px 0 0 16px; /* Flat right border since it continues to next pagination */
   }
   
   .cards-page:not(:last-child) .process-card:nth-child(3) .card-description {
@@ -187,6 +194,11 @@
   
   .cards-page:not(:last-child) .process-card:nth-child(3) .card-bullets {
     display: none;
+  }
+  
+  /* Adjust left section border radius for partial card on tablet */
+  .cards-page:not(:last-child) .process-card:nth-child(3) .card-left-section {
+    border-radius: 16px 0 0 16px; /* Match the partial card's flat right border */
   }
   
   /* Last page cards - center them properly */
@@ -221,14 +233,14 @@
   }
   
   .indicator {
-    width: 12px;
-    height: 12px;
-    min-width: 12px;
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
   }
   
   .indicator.active {
-    width: 40px;
-    height: 12px;
+    width: 24px;
+    height: 8px;
   }
 }
 
@@ -274,15 +286,15 @@
 .nav-arrow {
   background: none;
   border: none;
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .nav-arrow:hover {
@@ -313,8 +325,8 @@
 }
 
 .indicator {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   border: none;
   background: #9CA3AF;
@@ -328,9 +340,9 @@
 }
 
 .indicator.active {
-  width: 40px;
-  height: 12px;
-  border-radius: 6px;
+  width: 32px;
+  height: 10px;
+  border-radius: 5px;
   background: #4B5563;
   transform: scale(1);
 }
@@ -856,13 +868,13 @@
   }
   
   .nav-arrow {
-    width: 50px;
-    height: 50px;
+    width: 44px;
+    height: 44px;
   }
   
   .nav-arrow svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
   }
   
   .carousel-indicators {
@@ -872,13 +884,13 @@
   }
   
   .indicator {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
   
   .indicator.active {
-    width: 30px;
-    height: 10px;
+    width: 24px;
+    height: 8px;
   }
 }
 
@@ -932,12 +944,12 @@
   }
   
   .nav-arrow {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
   }
   
   .nav-arrow svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
 }
