@@ -82,7 +82,7 @@ const ProcessSection: React.FC = () => {
     },
     {
       title: "Negotiation",
-      description: "We work to secure outcomes that safeguard your interests while creating balanced agreements for all parties. Our approach builds competitive tension and ensures clarity to deliver the most favourable outcome for you.",
+      description: "We work to secure outcomes that safeguard your interests while creating balanced agreements for all parties. We anticipate pressure points, manage competing interests, and ensure you enter the agreement from a position of strength.",
       bulletPoints: [
         "Gather and assess initial offers",
         "Support term sheet and structure negotiations",
